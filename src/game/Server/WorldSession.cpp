@@ -419,11 +419,10 @@ void WorldSession::LogoutPlayer(bool Save)
     if (_player)
     {
 #ifdef ENABLE_PLAYERBOTS
-        if (GetPlayer()->GetPlayerbotMgr())
-            GetPlayer()->GetPlayerbotMgr()->LogoutAllBots();
-#endif
-
+        sLog.outChar("Account: %d (IP: %s) Logout Character:[%s] (guid: %u)", GetAccountId(), m_Socket ? GetRemoteAddress().c_str() : "bot", _player->GetName(), _player->GetGUIDLow());
+#else
         sLog.outChar("Account: %d (IP: %s) Logout Character:[%s] (guid: %u)", GetAccountId(), GetRemoteAddress().c_str(), _player->GetName() , _player->GetGUIDLow());
+#endif
 
         if (ObjectGuid lootGuid = GetPlayer()->GetLootGuid())
         {
@@ -527,7 +526,7 @@ void WorldSession::LogoutPlayer(bool Save)
         ///- Reset the online field in the account table
         // no point resetting online in character table here as Player::SaveToDB() will set it to 1 since player has not been removed from world at this stage
         // No SQL injection as AccountID is uint32
-#ifdef ENABLE_PLAYERBOTS
+/*#ifdef ENABLE_PLAYERBOTS
         if (!GetPlayer()->GetPlayerbotAI())
         {
             static SqlStatementID id;
@@ -538,12 +537,12 @@ void WorldSession::LogoutPlayer(bool Save)
                 stmt.PExecute(uint32(0), GetAccountId());
             }
         }
-#else
+#else*/
         static SqlStatementID id;
 
         SqlStatement stmt = LoginDatabase.CreateStatement(id, "UPDATE `account` SET `active_realm_id` = ? WHERE `id` = ?");
         stmt.PExecute(uint32(0), GetAccountId());
-#endif
+/*#endif*/
         ///- If the player is in a guild, update the guild roster and broadcast a logout message to other guild members
         if (Guild* guild = sGuildMgr.GetGuildById(_player->GetGuildId()))
         {
@@ -589,9 +588,9 @@ void WorldSession::LogoutPlayer(bool Save)
         sSocialMgr.SendFriendStatus(_player, FRIEND_OFFLINE, _player->GetObjectGuid(), true);
         sSocialMgr.RemovePlayerSocial(_player->GetGUIDLow());
 
-#ifdef ENABLE_PLAYERBOTS
+/*#ifdef ENABLE_PLAYERBOTS
         uint32 guid = GetPlayer()->GetGUIDLow();
-#endif
+#endif*/
 
         ///- Used by Eluna
 #ifdef ENABLE_ELUNA
@@ -623,11 +622,11 @@ void WorldSession::LogoutPlayer(bool Save)
         // No SQL injection as AccountId is uint32
 
         static SqlStatementID updChars;
-#ifdef ENABLE_PLAYERBOTS
+/*#ifdef ENABLE_PLAYERBOTS
         SqlStatement stmt = CharacterDatabase.CreateStatement(updChars, "UPDATE `characters` SET `online` = 0 WHERE `account` = ?");
-#else
+#else*/
         stmt = CharacterDatabase.CreateStatement(updChars, "UPDATE `characters` SET `online` = 0 WHERE `account` = ?");
-#endif
+/*#endif*/
         stmt.PExecute(GetAccountId());
 
         DEBUG_LOG("SESSION: Sent SMSG_LOGOUT_COMPLETE Message");

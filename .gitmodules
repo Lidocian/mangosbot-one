@@ -16,3 +16,6 @@
 [submodule "win"]
 	path = win
 	url = https://github.com/mangostools/EasyBuild
+[submodule "src/modules/Bots"]
+	path = src/modules/Bots
+	url = https://github.com/celguar/mangosbot-bots.git

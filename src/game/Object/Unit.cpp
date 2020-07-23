@@ -56,6 +56,10 @@
 #include "LuaEngine.h"
 #include "ElunaEventMgr.h"
 #endif /* ENABLE_ELUNA */
+#ifdef ENABLE_PLAYERBOTS
+#include "playerbot.h"
+#include "GuildTaskMgr.h"
+#endif
 
 #include <math.h>
 
@@ -1215,6 +1219,10 @@ void Unit::JustKilledCreature(Creature* victim, Player* responsiblePlayer)
 #ifdef ENABLE_ELUNA
         sEluna->OnCreatureKill(responsiblePlayer, victim);
 #endif /* ENABLE_ELUNA */
+
+#ifdef ENABLE_PLAYERBOTS
+        sGuildTaskMgr.CheckKillTask(responsiblePlayer, victim);
+#endif
     }
 
     // Notify the outdoor pvp script

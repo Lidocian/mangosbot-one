@@ -71,6 +71,7 @@
 DatabaseType WorldDatabase;                                 ///< Accessor to the world database
 DatabaseType CharacterDatabase;                             ///< Accessor to the character database
 DatabaseType LoginDatabase;                                 ///< Accessor to the realm/login database
+DatabaseType PlayerbotDatabase;                             ///< Accessor to the playerbot database
 
 uint32 realmID = 0;                                         ///< Id of the realm
 //*******************************************************************************************************//
@@ -149,6 +150,44 @@ static bool start_db()
         return false;
     }
 
+    /// Playerbot Database
+    dbstring = sConfig.GetStringDefault("PlayerbotDatabaseInfo", "");
+    nConnections = sConfig.GetIntDefault("PlayerbotDatabaseConnections", 1);
+    if (dbstring.empty())
+    {
+        sLog.outError("Playerbot Database not specified in configuration file");
+
+        ///- Wait for already started DB delay threads to end
+        WorldDatabase.HaltDelayThread();
+        CharacterDatabase.HaltDelayThread();
+        return false;
+    }
+    sLog.outString("Playerbot Database total connections: %i", nConnections + 1);
+
+    ///- Initialise the Playerbot database
+    if (!PlayerbotDatabase.Initialize(dbstring.c_str(), nConnections))
+    {
+        sLog.outError("Can not connect to Playerbot database %s", dbstring.c_str());
+
+        ///- Wait for already started DB delay threads to end
+        CharacterDatabase.HaltDelayThread();
+        WorldDatabase.HaltDelayThread();
+        return false;
+    }
+
+    ///- Get login database info from configuration file
+    dbstring = sConfig.GetStringDefault("LoginDatabaseInfo", "");
+    nConnections = sConfig.GetIntDefault("LoginDatabaseConnections", 1);
+    if (dbstring.empty())
+    {
+        sLog.outError("Login database not specified in configuration file");
+
+        ///- Wait for already started DB delay threads to end
+        WorldDatabase.HaltDelayThread();
+        CharacterDatabase.HaltDelayThread();
+        return false;
+    }
+
     ///- Get login database info from configuration file
     dbstring = sConfig.GetStringDefault("LoginDatabaseInfo", "");
     nConnections = sConfig.GetIntDefault("LoginDatabaseConnections", 1);
@@ -180,6 +219,7 @@ static bool start_db()
         ///- Wait for already started DB delay threads to end
         WorldDatabase.HaltDelayThread();
         CharacterDatabase.HaltDelayThread();
+        PlayerbotDatabase.HaltDelayThread();
         LoginDatabase.HaltDelayThread();
         return false;
     }
@@ -195,6 +235,7 @@ static bool start_db()
         ///- Wait for already started DB delay threads to end
         WorldDatabase.HaltDelayThread();
         CharacterDatabase.HaltDelayThread();
+        PlayerbotDatabase.HaltDelayThread();
         LoginDatabase.HaltDelayThread();
         return false;
     }
@@ -433,6 +474,7 @@ int main(int argc, char** argv)
     CharacterDatabase.AllowAsyncTransactions();
     WorldDatabase.AllowAsyncTransactions();
     LoginDatabase.AllowAsyncTransactions();
+    PlayerbotDatabase.AllowAsyncTransactions();
 
     ///- Catch termination signals
     hook_signals();
@@ -544,6 +586,7 @@ int main(int argc, char** argv)
     CharacterDatabase.HaltDelayThread();
     WorldDatabase.HaltDelayThread();
     LoginDatabase.HaltDelayThread();
+    PlayerbotDatabase.HaltDelayThread();
 
     // This is done to make sure that we cleanup our so file before it's
     // unloaded automatically, since the ~ScriptMgr() is called to late
