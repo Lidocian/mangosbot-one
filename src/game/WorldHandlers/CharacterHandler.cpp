@@ -110,7 +110,6 @@ void PlayerbotHolder::AddPlayerBot(uint64 playerGuid, uint32 masterAccount)
         delete holder;                                      // delete all unprocessed queries
         return;
     }
-
     CharacterDatabase.DelayQueryHolder(this, &PlayerbotHolder::HandlePlayerBotLoginCallback, holder);
 }
 
@@ -126,7 +125,7 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(QueryResult * dummy, SqlQuery
     uint32 botAccountId = lqh->GetAccountId();
     WorldSession *botSession = new WorldSession(botAccountId, NULL, SEC_PLAYER,
 #ifndef MANGOSBOT_ZERO
-        1,
+        2,
 #endif
         0, LOCALE_enUS);
 
@@ -229,17 +228,24 @@ class CharacterHandler
         {
             if (!holder) return;
 
-            if (WorldSession* session = sWorld.FindSession(((LoginQueryHolder*)holder)->GetAccountId()))
-                session->HandlePlayerLogin((LoginQueryHolder*)holder);
+            WorldSession* session = sWorld.FindSession(((LoginQueryHolder*)holder)->GetAccountId());
+            if (!session)
+            {
+                delete holder;
+                return;
+            }
 #ifdef ENABLE_PLAYERBOTS
             ObjectGuid guid = ((LoginQueryHolder*)holder)->GetGuid();
+#endif
+            session->HandlePlayerLogin((LoginQueryHolder*)holder);
+#ifdef ENABLE_PLAYERBOTS
             Player* player = sObjectMgr.GetPlayer(guid, true);
             if (player && !player->GetPlayerbotAI())
             {
                 player->SetPlayerbotMgr(new PlayerbotMgr(player));
                 player->GetPlayerbotMgr()->OnPlayerLogin(player);
+                sRandomPlayerbotMgr.OnPlayerLogin(player);
             }
-            sRandomPlayerbotMgr.OnPlayerLogin(player);
 #endif
         }
 } chrHandler;

@@ -1524,16 +1524,10 @@ void World::showFooter()
 #endif
 
     // PLAYERBOTS can be included or excluded but also disabled via mangos.conf
-#ifdef ENABLE_PLAYERBOTS
-    bool playerBotActive = sConfig.GetBoolDefault("PlayerbotAI.DisableBots", true);
-    if (playerBotActive)
-    {
+#ifndef ENABLE_PLAYERBOTS
         modules_.insert("            PlayerBots : Disabled");
-    }
-    else
-    {
+#else
         modules_.insert("            PlayerBots : Enabled");
-    }
 #endif
 
     // Remote Access can be activated / deactivated via mangos.conf
