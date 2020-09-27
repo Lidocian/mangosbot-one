@@ -18,4 +18,4 @@
 	url = https://github.com/mangostools/EasyBuild
 [submodule "src/modules/Bots"]
 	path = src/modules/Bots
-	url = https://github.com/celguar/mangosbot-bots.git
+	url = https://github.com/lidocian/mangosbot-dev.git
